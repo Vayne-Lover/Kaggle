@@ -1,4 +1,3 @@
-##
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -7,10 +6,10 @@ in_file = 'train.csv'
 full_data = pd.read_csv(in_file)
 full_data.head()
 
-##
 full_data.describe()
 
-##
+full_data.isnull().any()
+
 full_data['Age']=full_data['Age'].fillna(full_data['Age'].median())
 full_data['Name']=full_data['Name'].apply(lambda x:len(x))
 full_data['Embarked']=full_data['Embarked'].fillna('S')
@@ -23,8 +22,19 @@ full_data.loc[full_data['Embarked']=='S','Embarked']=0
 full_data.loc[full_data['Embarked']=='C','Embarked']=1
 full_data.loc[full_data['Embarked']=='Q','Embarked']=2
 
-new_data=full_data.drop(['PassengerId','SibSp','Parch','Cabin','Ticket'], axis = 1)
+new_data=full_data.drop(['PassengerId','Name','SibSp','Parch','Cabin','Ticket'], axis = 1)
 new_data.head()
+
+new_data.describe()
+
+from IPython.display import display
+import scipy
+for feature in new_data.keys():
+    Q1 = np.percentile(new_data[feature],25)
+    Q3 = np.percentile(new_data[feature],75)
+    step = 2.0*(Q3-Q1)
+    print "Data points considered outliers for the feature '{}':".format(feature)
+    display(new_data[~((new_data[feature] >= Q1 - step) & (new_data[feature] <= Q3 + step))])
 
 import matplotlib.pyplot as plt
 %pylab inline
@@ -42,24 +52,22 @@ import matplotlib.pyplot as plt
 %pylab inline
 sns.swarmplot(x='Family',y='Age',hue='Survived',data=new_data)
 
-
 y_all=new_data['Survived']
 X_all=new_data.drop('Survived', axis = 1)
 from sklearn.cross_validation import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.20, random_state=20)
 
-from sklearn.metric import f1_score
+import time
+from sklearn.metrics import f1_score
 def train_classifier(clf, X_train, y_train):
-    start = time()
+    start = time.clock()
     clf.fit(X_train, y_train)
-    end = time()
+    end = time.clock()
     print "Trained model in {:.4f} seconds".format(end - start)
 
 def predict_labels(clf, features, target):
-    start = time()
     y_pred = clf.predict(features)
-    end = time()
-    return f1_score(target.values, y_pred, pos_label='yes')
+    return f1_score(target.values, y_pred)
 
 
 def train_predict(clf, X_train, y_train, X_test, y_test):
@@ -76,13 +84,13 @@ clf2=KNeighborsClassifier()
 from sklearn.ensemble import RandomForestClassifier
 clf3=RandomForestClassifier()
 
-X_train_1=X_train[:297]
-X_train_2=X_train[:594]
-X_train_3=X_train[:891]
+X_train_1=X_train[:230]
+X_train_2=X_train[:460]
+X_train_3=X_train
 
-y_train_1=y_train[:297]
-y_train_2=y_train[:594]
-y_train_3=y_train[:891]
+y_train_1=y_train[:230]
+y_train_2=y_train[:460]
+y_train_3=y_train
 
 print "SVM"
 train_predict(clf1, X_train_1, y_train_1, X_test, y_test)
@@ -123,3 +131,14 @@ print grid_obj.best_estimator_.get_params()
 print "Tuned model has a training F1 score of {:.4f}.".format(predict_labels(clf, X_train, y_train))
 print "Tuned model has a testing F1 score of {:.4f}.".format(predict_labels(clf, X_test, y_test))
 print "Optimize model in {:.4f} seconds".format(end - start)
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+%pylab inline
+
+plot_data=pd.DataFrame({'Name':['SVM','KNN','RDM','Tuned RDM'],
+                       'Train Score':[0.880,0.736,0.965,0.882],
+                       'Test Score':[0.404,0.574,0.730,0.760]})
+sns.pointplot(x='Name',y='Train Score',data=plot_data,markers='o',color='r')
+sns.pointplot(x='Name',y='Test Score',data=plot_data,markers='D',color='g')
