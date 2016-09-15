@@ -26,12 +26,12 @@ NQuantX = pd.DataFrame(scaledQuantX)
 scaledQuantTest = preprocessing.scale(quantTest)
 NQuantTest = pd.DataFrame(scaledQuantTest)
 
-knn =  KNeighborsRegressor(n_neighbors = 5,algorithm='brute')
+knn =  KNeighborsRegressor(n_neighbors = 5,algorithm='brute',leaf_size=40)
 knn.fit(NQuantX, y)
 
 results = knn.predict(NQuantTest)
 output['SalePrice'] = results
-output.to_csv('Vayne3.csv', index=False)
+output.to_csv('Vayne4.csv', index=False)
 end=time.clock()
 
 print "Cost {:.4f}s.".format(end-start)
