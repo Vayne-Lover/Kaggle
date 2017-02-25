@@ -1,4 +1,4 @@
-%pylab inline
+#%pylab inline
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -14,7 +14,7 @@ from keras.utils.np_utils import to_categorical
 from keras.callbacks import EarlyStopping
 
 ## Read data from the CSV file
-data = pd.read_csv('../input/train.csv')
+data = pd.read_csv('train.csv')
 parent_data = data.copy()
 ID = data.pop('id')
 
@@ -59,15 +59,16 @@ plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
 ## read test file
-test = pd.read_csv('../input/test.csv')
+test = pd.read_csv('test.csv')
 index = test.pop('id')
 test = StandardScaler().fit(test).transform(test)
 yPred = model.predict_proba(test)
 
 ## Converting the test predictions in a dataframe as depicted by sample submission
-yPred = pd.DataFrame(yPred,index=index,columns=sort(parent_data.species.unique()))
+a=sorted(parent_data.species.unique())
+yPred = pd.DataFrame(yPred,index=index,columns=a)
 
-fp = open('submission_nn_kernel.csv','w')
+fp = open('submission_try.csv','w')
 fp.write(yPred.to_csv())
-
+fp.close()
 
